@@ -1,0 +1,40 @@
+services:
+  api:
+    container_name: api
+    build:
+      context: app/
+    ports:
+      - "8000:80"
+    networks:
+      - robot-net
+    restart: always
+    env_file:
+      - env/auth.env
+    volumes:
+      - ./app:/app
+    depends_on:
+      - keycloak
+
+  keycloak:
+    container_name: keycloak
+    image: quay.io/keycloak/keycloak:24.0.2
+    command: ["start-dev", "--import-realm"]
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    ports:
+      - "8080:8080"
+    networks:
+      - robot-net
+    restart: always
+    env_file:
+      - env/auth.env
+    volumes:
+      - ./app/src/configs/realm-export.json:/opt/keycloak/data/import/realm-export.json
+
+volumes:
+  keycloak_data:
+
+networks:
+  robot-net:
+    driver: bridge
